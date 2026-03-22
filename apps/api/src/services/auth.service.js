@@ -1,0 +1,32 @@
+import { User } from "../models/User.js";
+import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken'
+
+
+export function signToken(sub){
+    return jwt.sign({sub}, process.env.JWT_SECRET, {expiresIn: '7d'})
+}
+
+export async function registerUser({email, password}){
+    // check if there is any existing user or not
+
+    const existing = await User.findOne({email});
+
+    if(existing){
+        const err  = new Error('Email already registered');
+        err.statusCode = 409;
+        throw err;
+    };
+
+    const passwordHash = await bcrypt.hash(password, 10);
+    console.log({passwordHash})
+
+    const user = await User.create({email, passwordHash});
+
+    console.log({user})
+    const token = signToken(user._id.toString());
+    console.log({passwordHash, token})
+
+    return {user, token}
+
+}
