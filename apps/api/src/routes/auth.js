@@ -1,5 +1,6 @@
 import { Router } from "express";
 import * as authController from '../controllers/auth.controller.js'
+import {authMiddleware} from '../middleware/auth.js'
 
 const router = Router();
 
@@ -15,7 +16,7 @@ router.post('/register', authController.register)
 router.post('/login', authController.login)
 
 // /me
-router.post('/me', authController.me)
+router.post('/me',authMiddleware, authController.me)
 
 
 // logout

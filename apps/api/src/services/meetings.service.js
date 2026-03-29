@@ -1,0 +1,91 @@
+import mongoose from "mongoose";
+import { Meeting } from "../models/Meeting.js";
+
+const MAX_TRANSCRIPT = 100_000;
+
+function toObjectId(userId) {
+  if (!mongoose.Types.ObjectId.isValid(userId)) {
+    const err = new Error("Invalid id");
+    err.statusCode = 400;
+    throw err;
+  }
+  return new mongoose.Types.ObjectId(userId);
+}
+
+export async function createMeeting(userId, { title, transcript }) {
+  const t = String(transcript || "");
+
+  if (t.length > MAX_TRANSCRIPT) {
+    const err = new Error(`Transcript too long (max ${MAX_TRANSCRIPT} chars)`);
+    err.statusCode = 400;
+    throw err;
+  }
+
+  return Meeting.create({
+    userId: toObjectId(userId),
+    title: Strinf(title || "").trim(),
+    transcript: t,
+    status: "idle",
+  });
+}
+
+export async function listMeetings(userId) {
+  return Meeting.find({
+    userId: toObjectId(userId),
+  })
+    .sort({ created: -1 })
+    .lean();
+}
+
+export async function getMeeting(userId, meetingId) {
+    if (!mongoose.Types.ObjectId.isValid(meetingId)) {
+      const err = new Error('Invalid meeting id');
+      err.statusCode = 400;
+      throw err;
+    }
+    const m = await Meeting.findOne({
+      _id: meetingId,
+      userId: toObjectId(userId),
+    }).lean();
+    if (!m) {
+      const err = new Error('Meeting not found');
+      err.statusCode = 404;
+      throw err;
+    }
+    return m;
+  }
+  export async function updateMeeting(userId, meetingId, body) {
+    await getMeeting(userId, meetingId); // 404 if not owned
+    const updates = {};
+    if (body.title != null) updates.title = String(body.title).trim();
+    if (body.transcript != null) {
+      const t = String(body.transcript);
+      if (t.length > MAX_TRANSCRIPT) {
+        const err = new Error(`Transcript too long (max ${MAX_TRANSCRIPT} chars)`);
+        err.statusCode = 400;
+        throw err;
+      }
+      updates.transcript = t;
+    }
+    if (Object.keys(updates).length === 0) {
+      const err = new Error('No valid fields to update');
+      err.statusCode = 400;
+      throw err;
+    }
+    return Meeting.findOneAndUpdate(
+      { _id: meetingId, userId: toObjectId(userId) },
+      { $set: updates },
+      { new: true, runValidators: true }
+    ).lean();
+  }
+  export async function deleteMeeting(userId, meetingId) {
+    const result = await Meeting.deleteOne({
+      _id: meetingId,
+      userId: toObjectId(userId),
+    });
+    if (result.deletedCount === 0) {
+      const err = new Error('Meeting not found');
+      err.statusCode = 404;
+      throw err;
+    }
+  }

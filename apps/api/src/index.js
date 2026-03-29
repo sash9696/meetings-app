@@ -28,6 +28,8 @@ import cors from 'cors';
 import { connectDb, isMongoReady } from './db.js';
 import { pingRedis } from './redis.js';
 import authRoutes from './routes/auth.js'
+import meetingsRoutes from './routes/meetings.js'
+import { authMiddleware } from './middleware/auth.js';
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -69,6 +71,8 @@ app.get('/api/instance', (req, res) => {
 // auth
 app.use('/api/auth', authRoutes);
 // meetings
+app.use('/api/meetings', authMiddleware, meetingsRoutes)
+
 // dashboard
 // users
 

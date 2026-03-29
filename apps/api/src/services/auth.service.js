@@ -30,3 +30,23 @@ export async function registerUser({email, password}){
     return {user, token}
 
 }
+
+export async function loginUser({email, password}){
+    // check if there is any existing user or not
+    const user = await User.findOne({email: email.trim().toLowerCase()});
+    if(!user){
+        const err  = new Error('Invalid email or password');
+        err.statusCode = 401;
+        throw err;
+    };
+    const ok = await bcrypt.compare(password, user.passwordHash);
+    if(!ok){
+        const err  = new Error('Invalid email or password');
+        err.statusCode = 401;
+        throw err;
+    }
+    const token = signToken(user._id.toString());
+
+    return {user, token}
+
+}
