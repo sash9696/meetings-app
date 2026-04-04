@@ -1,28 +1,42 @@
-# Dependencies
+# =============================================================================
+# meetings-app — only source, config templates, and lockfiles belong on GitHub
+# =============================================================================
+
+# --- Dependencies ---
 node_modules/
 
-# Environment & local secrets (keep .env.example committed if you add one)
+# --- Environment & secrets (never commit real keys) ---
 .env
 .env.*
 !.env.example
 !.env.*.example
+!.env.sample
+*.local
+
+# HTTP cookie jars / curl dumps (often contain session tokens)
 cookies.txt
+**/cookies.txt
 
-# Build & caches
-dist
-dist-ssr
-build
-out
-.next
-.nuxt
-.turbo
-.cache
-.parcel-cache
+# --- Build outputs ---
+dist/
+dist-ssr/
+build/
+out/
+.next/
+.nuxt/
+.output/
+.turbo/
+.vercel/
+
+# --- Tooling caches ---
+.cache/
+.parcel-cache/
+.vite/
+.eslintcache
 *.tsbuildinfo
-.vite
 
-# Logs & debug
-logs
+# --- Logs & debug ---
+logs/
 *.log
 npm-debug.log*
 yarn-debug.log*
@@ -30,16 +44,18 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-# Test & coverage
-coverage
-.nyc_output
+# --- Tests & coverage ---
+coverage/
+.nyc_output/
 
-# OS
+# --- OS junk ---
 .DS_Store
 Thumbs.db
+ehthumbs.db
+Desktop.ini
 
-# Editor / IDE
-.idea
+# --- Editor / IDE ---
+.idea/
 *.suo
 *.ntvs*
 *.njsproj
@@ -48,9 +64,27 @@ Thumbs.db
 .vscode/*
 !.vscode/extensions.json
 
-# Optional local Docker overrides (often contain machine-specific paths)
+# --- Docker (machine-specific overrides) ---
 docker-compose.override.yml
+**/docker-compose.override.yml
 
-# Certificates & keys (if you add them locally)
+# --- Local data / dumps (should never be in repo) ---
+*.rdb
+dump.rdb
+data/mongo/
+data/redis/
+
+# --- Certificates (if added locally) ---
 *.pem
 *.key
+!**/fixtures/**/*.pem
+
+# --- Merge / patch leftovers ---
+*.orig
+*.rej
+
+# --- Misc temp ---
+tmp/
+temp/
+*.pid
+*.seed

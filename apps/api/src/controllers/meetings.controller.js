@@ -64,3 +64,16 @@ export async function remove(req, res) {
     return handleError(res, e);
   }
 }
+
+export async function summarize(req, res) {
+  try {
+    const { jobId, meeting } = await meetingsService.requestSummarize(
+      req.userId,
+      req.params.id
+    );
+    return res.status(202).json({ jobId, meeting });
+  } catch (e) {
+    const status = e.statusCode || 500;
+    return res.status(status).json({ error: e.message || 'Summarize failed' });
+  }
+}

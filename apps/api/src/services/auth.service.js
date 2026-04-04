@@ -19,15 +19,13 @@ export async function registerUser({email, password}){
     };
 
     const passwordHash = await bcrypt.hash(password, 10);
-    console.log({passwordHash})
+    const adminEmail = (process.env.ADMIN_EMAIL || "").trim().toLowerCase();
+    const role =
+      adminEmail && email === adminEmail ? "admin" : "user";
 
-    const user = await User.create({email, passwordHash});
-
-    console.log({user})
+    const user = await User.create({ email, passwordHash, role });
     const token = signToken(user._id.toString());
-    console.log({passwordHash, token})
-
-    return {user, token}
+    return { user, token };
 
 }
 

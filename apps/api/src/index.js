@@ -29,6 +29,8 @@ import { connectDb, isMongoReady } from './db.js';
 import { pingRedis } from './redis.js';
 import authRoutes from './routes/auth.js'
 import meetingsRoutes from './routes/meetings.js'
+import dashboardRoutes from './routes/dashboard.js'
+import usersRoutes from './routes/users.js'
 import { authMiddleware } from './middleware/auth.js';
 
 const app = express();
@@ -72,9 +74,8 @@ app.get('/api/instance', (req, res) => {
 app.use('/api/auth', authRoutes);
 // meetings
 app.use('/api/meetings', authMiddleware, meetingsRoutes)
-
-// dashboard
-// users
+app.use('/api/dashboard', authMiddleware, dashboardRoutes)
+app.use('/api/users', authMiddleware, usersRoutes)
 
 await connectDb();
 

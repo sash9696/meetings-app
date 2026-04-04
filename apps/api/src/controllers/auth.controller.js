@@ -17,7 +17,11 @@ export async function register(req, res) {
     const { user, token } = await registerUser({ email, password });
 
     return res.status(201).json({
-      user: { id: user._id.toString(), email: user.email },
+      user: {
+        id: user._id.toString(),
+        email: user.email,
+        role: user.role || "user",
+      },
       token,
     });
   } catch (error) {
@@ -44,7 +48,11 @@ export async function login(req, res) {
     const { user, token } = await loginUser({ email, password });
 
     return res.json({
-      user: { id: user._id.toString(), email: user.email },
+      user: {
+        id: user._id.toString(),
+        email: user.email,
+        role: user.role || "user",
+      },
       token,
     });
   } catch (error) {
@@ -62,14 +70,17 @@ export async function login(req, res) {
 
 export async function me(req, res) {
   try {
-    const user = await User.findById(req, userId).select("email").lean();
-    if (!user)
-      return res.status(404).json({
-        error: "User not found",
-      });
+    const user = await User.findById(req.userId).select("email role").lean();
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
 
     return res.json({
-      user: { id: user._id.toString(), email: user.email },
+      user: {
+        id: user._id.toString(),
+        email: user.email,
+        role: user.role || "user",
+      },
     });
   } catch (error) {
     return res.status(500).json({

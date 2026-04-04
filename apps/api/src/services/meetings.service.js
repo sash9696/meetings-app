@@ -1,8 +1,26 @@
 import mongoose from "mongoose";
 import { Meeting } from "../models/Meeting.js";
+import { summarizeQueue } from "../queue.js";
 
 const MAX_TRANSCRIPT = 100_000;
 
+
+function formatMeeting(m) {
+  const o = m.toObject ? m.toObject() : m;
+  return {
+    id: o._id.toString(),
+    title: o.title,
+    transcript: o.transcript,
+    summary: o.summary,
+    actionItems: o.actionItems,
+    decisions: o.decisions,
+    status: o.status,
+    jobId: o.jobId,
+    error: o.error,
+    createdAt: o.createdAt,
+    updatedAt: o.updatedAt,
+  };
+}
 function toObjectId(userId) {
   if (!mongoose.Types.ObjectId.isValid(userId)) {
     const err = new Error("Invalid id");
@@ -23,7 +41,7 @@ export async function createMeeting(userId, { title, transcript }) {
 
   return Meeting.create({
     userId: toObjectId(userId),
-    title: Strinf(title || "").trim(),
+    title: String(title || "").trim(),
     transcript: t,
     status: "idle",
   });
@@ -33,7 +51,7 @@ export async function listMeetings(userId) {
   return Meeting.find({
     userId: toObjectId(userId),
   })
-    .sort({ created: -1 })
+    .sort({ createdAt: -1 })
     .lean();
 }
 
@@ -54,7 +72,7 @@ export async function getMeeting(userId, meetingId) {
     }
     return m;
   }
-  export async function updateMeeting(userId, meetingId, body) {
+export async function updateMeeting(userId, meetingId, body) {
     await getMeeting(userId, meetingId); // 404 if not owned
     const updates = {};
     if (body.title != null) updates.title = String(body.title).trim();
@@ -78,7 +96,7 @@ export async function getMeeting(userId, meetingId) {
       { new: true, runValidators: true }
     ).lean();
   }
-  export async function deleteMeeting(userId, meetingId) {
+export async function deleteMeeting(userId, meetingId) {
     const result = await Meeting.deleteOne({
       _id: meetingId,
       userId: toObjectId(userId),
@@ -89,3 +107,43 @@ export async function getMeeting(userId, meetingId) {
       throw err;
     }
   }
+
+export async function requestSummarize(userId, meetingId) {
+    const meeting = await Meeting.findOne({ _id: meetingId, userId });
+    if (!meeting) {
+      const err = new Error('Not found');
+      err.statusCode = 404;
+      throw err;
+    }
+  
+    if (['queued', 'processing'].includes(meeting.status)) {
+      const err = new Error('Summarization already in progress');
+      err.statusCode = 409;
+      throw err;
+    }
+  
+    meeting.status = 'queued';
+    meeting.error = null;
+    meeting.summary = null;
+    meeting.actionItems = null;
+    meeting.decisions = null;
+    await meeting.save();
+  
+    const job = await summarizeQueue.add(
+      'summarize',
+      { meetingId: meeting._id.toString() },
+      {
+        attempts: 1,
+        removeOnComplete: true,
+        removeOnFail: false,
+      }
+    );
+  
+    const jobId = job?.id ? String(job.id) : null;
+    meeting.jobId = jobId;
+    await meeting.save();
+  
+    return { jobId, meeting: formatMeeting(meeting) };
+  }
+
+

@@ -10,6 +10,8 @@ router.get('/:id', meetingsController.getOne)
 router.patch('/:id', meetingsController.update)
 router.delete('/:id', meetingsController.remove)
 
+router.post('/:id/summarize', meetingsController.summarize)
+
 
 
 
