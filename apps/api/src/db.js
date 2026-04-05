@@ -1,13 +1,13 @@
-import mongoose from 'mongoose';
+import mongoose from "mongoose";
 
-// const uri  = process.env.MONGODB_URI || 'mongodb://mongo:27017/meeting_intel';
-const uri  = 'mongodb://127.0.0.1:27017/meeting_intel';
+const uri =
+  process.env.MONGODB_URI || "mongodb://127.0.0.1:27017/meeting_intel";
 
-export async function connectDb(params) {
-    mongoose.set('strictQuery', true);
-    await mongoose.connect(uri);
+export async function connectDb() {
+  mongoose.set("strictQuery", true);
+  await mongoose.connect(uri);
 }
 
-export function isMongoReady(){
-    return mongoose.connection.readyState === 1;
+export function isMongoReady() {
+  return mongoose.connection.readyState === 1;
 }

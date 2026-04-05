@@ -18,7 +18,8 @@ import { Meeting } from "./models/Meeting.js";
 import { summarizeMeeting } from "./llm.js";
 
 const uri =
-  process.env.MONGODB_URI || "mongodb://127.0.0.1:27017/meeting_intel";
+  process.env.MONGODB_URI ||
+  "mongodb://127.0.0.1:27017/meeting_intel";
 
 const connection = {
   host: process.env.REDIS_HOST || "127.0.0.1",
